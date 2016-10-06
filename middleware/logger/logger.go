@@ -1,9 +1,10 @@
 package logger
 
 import (
+	"net/http"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/Tecsisa/foulkon/middleware"
-	"net/http"
 )
 
 // Request logger middleware system

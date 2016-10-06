@@ -1,8 +1,9 @@
 package auth
 
 import (
-	"github.com/Tecsisa/foulkon/middleware"
 	"net/http"
+
+	"github.com/Tecsisa/foulkon/middleware"
 )
 
 // Authenticator middleware system, with connector and basic admin authentication
