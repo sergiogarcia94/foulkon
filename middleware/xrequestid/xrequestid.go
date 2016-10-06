@@ -25,9 +25,5 @@ func (r *XRequestIdMiddleware) Action(next http.Handler) http.Handler {
 }
 
 func (rm *XRequestIdMiddleware) GetInfo(r *http.Request, mc *middleware.MiddlewareContext) {
-	if mc == nil {
-		mc = new(middleware.MiddlewareContext)
-	}
-
 	mc.XRequestId = r.Header.Get(middleware.REQUEST_ID_HEADER)
 }

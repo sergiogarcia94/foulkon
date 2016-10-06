@@ -22,12 +22,6 @@ import (
 	"github.com/pelletier/go-toml"
 )
 
-const (
-	AUTHENTICATOR_MIDDLEWARE  = "AUTHENTICATOR"
-	XREQUESTID_MIDDLEWARE     = "XREQUESTID"
-	REQUEST_LOGGER_MIDDLEWARE = "REQUEST-LOGGER"
-)
-
 // aux var for ${OS_ENV_VAR} regex
 var rEnvVar, _ = regexp.Compile(`^\$\{(\w+)\}$`)
 var db *sql.DB
@@ -53,8 +47,8 @@ type Worker struct {
 	// Logger
 	Logger *logrus.Logger
 
-	//  Middlewares
-	Middlewares map[string]middleware.Middleware
+	//  Middleware handler
+	MiddlewareHandler *middleware.MiddlewareHandler
 }
 
 // NewWorker creates a Worker using configuration values
@@ -183,16 +177,16 @@ func NewWorker(config *toml.TomlTree) (*Worker, error) {
 
 	// Authenticator middleware
 	authenticatorMiddleware := auth.NewAuthenticatorMiddleware(authConnector, adminUser, adminPassword)
-	middlewares[AUTHENTICATOR_MIDDLEWARE] = authenticatorMiddleware
+	middlewares[middleware.AUTHENTICATOR_MIDDLEWARE] = authenticatorMiddleware
 	log.Infof("Created authenticator with admin username %v", adminUser)
 
 	// X-Request-Id middleware
 	xrequestidMiddleware := xrequestid.NewXRequestIdMiddleware()
-	middlewares[XREQUESTID_MIDDLEWARE] = xrequestidMiddleware
+	middlewares[middleware.XREQUESTID_MIDDLEWARE] = xrequestidMiddleware
 
 	// Request Logger middleware
 	requestLoggerMiddleware := logger.NewRequestLoggerMiddleware(log)
-	middlewares[REQUEST_LOGGER_MIDDLEWARE] = requestLoggerMiddleware
+	middlewares[middleware.REQUEST_LOGGER_MIDDLEWARE] = requestLoggerMiddleware
 
 	host, err := getMandatoryValue(config, "server.host")
 	if err != nil {
@@ -206,16 +200,16 @@ func NewWorker(config *toml.TomlTree) (*Worker, error) {
 	}
 
 	return &Worker{
-		Host:        host,
-		Port:        port,
-		CertFile:    getDefaultValue(config, "server.certfile", ""),
-		KeyFile:     getDefaultValue(config, "server.keyfile", ""),
-		Logger:      log,
-		Middlewares: middlewares,
-		UserApi:     authApi,
-		GroupApi:    authApi,
-		PolicyApi:   authApi,
-		AuthzApi:    authApi,
+		Host:              host,
+		Port:              port,
+		CertFile:          getDefaultValue(config, "server.certfile", ""),
+		KeyFile:           getDefaultValue(config, "server.keyfile", ""),
+		Logger:            log,
+		MiddlewareHandler: &middleware.MiddlewareHandler{Middlewares: middlewares},
+		UserApi:           authApi,
+		GroupApi:          authApi,
+		PolicyApi:         authApi,
+		AuthzApi:          authApi,
 	}, nil
 }
 

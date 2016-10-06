@@ -45,10 +45,6 @@ func (a *AuthenticatorMiddleware) Action(next http.Handler) http.Handler {
 }
 
 func (a *AuthenticatorMiddleware) GetInfo(r *http.Request, mc *middleware.MiddlewareContext) {
-	if mc == nil {
-		mc = new(middleware.MiddlewareContext)
-	}
-
 	mc.UserId, mc.Admin = a.getAuthenticatedUser(r)
 }
 

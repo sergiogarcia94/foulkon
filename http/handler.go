@@ -10,7 +10,6 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/Tecsisa/foulkon/api"
 	"github.com/Tecsisa/foulkon/foulkon"
-	"github.com/Tecsisa/foulkon/middleware"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -195,7 +194,7 @@ func WorkerHandlerRouter(worker *foulkon.Worker) http.Handler {
 	// Resources authorized endpoint
 	router.POST(RESOURCE_URL, workerHandler.HandleGetAuthorizedExternalResources)
 
-	return workerHandler.GetStandardMiddleware(router)
+	return workerHandler.worker.MiddlewareHandler.Handle(router)
 }
 
 // HTTP WORKER responses
@@ -280,29 +279,13 @@ func (wh *WorkerHandler) RespondInternalServerError(r *http.Request, requestInfo
 // Worker Aux method
 
 func (wh *WorkerHandler) GetRequestInfo(r *http.Request) api.RequestInfo {
-	// Retrieve request information from middlewares
-	mc := new(middleware.MiddlewareContext)
-	for _, m := range wh.worker.Middlewares {
-		m.GetInfo(r, mc)
-	}
+	// Retrieve request information from middleware context
+	mc := wh.worker.MiddlewareHandler.GetMiddlewareContext(r)
 	return api.RequestInfo{
 		Identifier: mc.UserId,
 		Admin:      mc.Admin,
 		RequestID:  mc.XRequestId,
 	}
-}
-
-func (wh *WorkerHandler) GetStandardMiddleware(apiHandler http.Handler) http.Handler {
-	var handler http.Handler
-	// Return handler with standard middlewares
-	handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		apiHandler.ServeHTTP(w, r)
-	})
-	handler = wh.worker.Middlewares[foulkon.REQUEST_LOGGER_MIDDLEWARE].Action(handler)
-	handler = wh.worker.Middlewares[foulkon.AUTHENTICATOR_MIDDLEWARE].Action(handler)
-	handler = wh.worker.Middlewares[foulkon.XREQUESTID_MIDDLEWARE].Action(handler)
-
-	return handler
 }
 
 // PROXY

@@ -124,25 +124,25 @@ func TestMain(m *testing.M) {
 
 	// Authenticator middleware
 	authenticatorMiddleware := auth.NewAuthenticatorMiddleware(authConnector, adminUser, adminPassword)
-	middlewares[foulkon.AUTHENTICATOR_MIDDLEWARE] = authenticatorMiddleware
+	middlewares[middleware.AUTHENTICATOR_MIDDLEWARE] = authenticatorMiddleware
 	log.Infof("Created authenticator with admin username %v", adminUser)
 
 	// X-Request-Id middleware
 	xrequestidMiddleware := xrequestid.NewXRequestIdMiddleware()
-	middlewares[foulkon.XREQUESTID_MIDDLEWARE] = xrequestidMiddleware
+	middlewares[middleware.XREQUESTID_MIDDLEWARE] = xrequestidMiddleware
 
 	// Request Logger middleware
 	requestLoggerMiddleware := logger.NewRequestLoggerMiddleware(log)
-	middlewares[foulkon.REQUEST_LOGGER_MIDDLEWARE] = requestLoggerMiddleware
+	middlewares[middleware.REQUEST_LOGGER_MIDDLEWARE] = requestLoggerMiddleware
 
 	// Return created core
 	worker := &foulkon.Worker{
-		Logger:      log,
-		Middlewares: middlewares,
-		UserApi:     testApi,
-		GroupApi:    testApi,
-		PolicyApi:   testApi,
-		AuthzApi:    testApi,
+		Logger:            log,
+		MiddlewareHandler: &middleware.MiddlewareHandler{Middlewares: middlewares},
+		UserApi:           testApi,
+		GroupApi:          testApi,
+		PolicyApi:         testApi,
+		AuthzApi:          testApi,
 	}
 
 	server = httptest.NewServer(WorkerHandlerRouter(worker))
